@@ -1,12 +1,13 @@
 import pygame 
 
 class Button():
-	def __init__(self, surface, x, y, image, size_x, size_y):
+	def __init__(self, surface, x, y, image, size_x, size_y, name):
 		self.image = pygame.transform.scale(image, (size_x, size_y))
 		self.rect = self.image.get_rect()
 		self.rect.topleft = (x, y)
 		self.clicked = False
 		self.surface = surface
+		self.name = name
 
 	def draw(self):
 		action = False

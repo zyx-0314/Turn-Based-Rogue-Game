@@ -23,6 +23,9 @@ def init_display():
     return screen
 
 class load_and_transform_image():
+    def convert(image_path):
+        return pygame.image.load(image_path).convert_alpha()
+
     def background_img(image_path):
         img = pygame.image.load(image_path).convert_alpha()
         return pygame.transform.scale(img, (screen_width, screen_height - bottom_panel))
@@ -45,7 +48,7 @@ class init_draw():
       img = font.render(text, True, text_col)
       self.screen.blit(img, (x, y))
 
-  def draw_panel(self, main_panel_img, draw_text, mc, enemy):
+  def draw_panel(self, main_panel_img, draw_text, player, enemy):
       self.screen.blit(main_panel_img, (0, screen_height - bottom_panel))
-      draw_text(f"{mc.name} HP: {mc.hp}", font, white, 25, screen_height - bottom_panel + 10)
+      draw_text(f"{player.name} HP: {player.hp}", font, white, 25, screen_height - bottom_panel + 10)
       draw_text(f"{enemy.name} HP: {enemy.hp}", font, white, screen_width / 2, screen_height - bottom_panel + 10)
