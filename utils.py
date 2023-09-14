@@ -27,6 +27,10 @@ class load_and_transform_image():
     def convert(image_path):
         return pygame.image.load(image_path).convert_alpha()
 
+    def scale(image_path):
+        img = pygame.image.load(image_path).convert_alpha()
+        return pygame.transform.scale(img, (img.get_width() * 2, img.get_height() * 2))
+
     def background_img(image_path):
         img = pygame.image.load(image_path).convert_alpha()
         return pygame.transform.scale(img, (screen_width, screen_height - bottom_panel))
@@ -39,17 +43,19 @@ pygame.font.init()
 font = pygame.font.SysFont("Times New Roman", 26)
 
 class init_draw():
-  def __init__(self, screen):
-    self.screen = screen
+    def __init__(self, screen):
+        self.screen = screen
 
-  def draw_bg(self, background_img):
-      self.screen.blit(background_img, (0, 0))
+    def draw_bg(self, background_img):
+        self.screen.blit(background_img, (0, 0))
 
-  def draw_text(self, text, font, text_col, x, y):
-      img = font.render(text, True, text_col)
-      self.screen.blit(img, (x, y))
+    def draw_text(self, text, font, text_col, x, y):
+        img = font.render(text, True, text_col)
+        self.screen.blit(img, (x, y))
 
-  def draw_panel(self, main_panel_img, draw_text, player, enemy):
-      self.screen.blit(main_panel_img, (0, screen_height - bottom_panel))
-      draw_text(f"{player.name} HP: {player.hp}", font, white, 25, screen_height - bottom_panel + 10)
-      draw_text(f"{enemy.name} HP: {enemy.hp}", font, white, screen_width / 2, screen_height - bottom_panel + 10)
+    def draw_panel(self, main_panel_img, draw_text):
+        self.screen.blit(main_panel_img, (0, screen_height - bottom_panel))
+
+    def draw_name(self, player, enemy):
+        self.draw_text(f"{player.name} HP: {player.hp}", font, white, 25, screen_height - bottom_panel + 10)
+        self.draw_text(f"{enemy.name} HP: {enemy.hp}", font, white, screen_width / 2, screen_height - bottom_panel + 10)
