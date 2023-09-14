@@ -1,123 +1,77 @@
 import pygame
+import random
 import os
+
+from utils import *
+from components.characters import *
 
 pygame.init()
 
-clock = pygame.time.Clock()
-fps = 60
+screen = init_display()
 
-bottom_panel = 120
-screen_width = 1000
-screen_height = 400 + bottom_panel
+background_img = load_and_transform_image.background_img("assets/background/dansel.jpg")
+main_panel_img = load_and_transform_image.main_panel_img("assets/panels/main panel.png")
 
-screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("Turn Base Rougelike Game Novel Type")
+current_fighter = "mc"
+total_characters = 2
+action_cooldown = 0
+action_wait_time = 90
 
-font = pygame.font.SysFont("Times New Roman", 26)
+attack = False
+clicked = False
 
-red = (255, 0, 0)
-green = (0, 255, 0)
-white = (255, 255, 255)
-gray = (50, 50, 50)
+draw = init_draw(screen)
 
-background_img = pygame.image.load("assets/background/dansel.jpg").convert_alpha()
-main_panel_img = pygame.image.load("assets/panels/main panel.png").convert_alpha()
+mc = Samurai(200, groundLevel, "mc", 30, 10, 85)
+skeleton = Enemy(screen_width-200, groundLevel, "skeleton", 200, 6, 85, 'potion')
 
-background_img = pygame.transform.scale(background_img, (screen_width, screen_height - bottom_panel))
-main_panel_img = pygame.transform.scale(main_panel_img, (screen_width, bottom_panel))
+mc_health_bar = HealthBar(leftTextIndention, screen_height - bottom_panel + 40, mc.hp, mc.max_hp)
+enemy_health_bar = HealthBar(rightTextIndention, screen_height - bottom_panel + 40, skeleton.hp, skeleton.max_hp)
 
-def draw_bg():
-    screen.blit(background_img, (0, 0))
-
-def draw_text(text, font, text_col, x, y):
-    img = font.render(text, True, text_col)
-    screen.blit(img, (x, y))
-
-def draw_panel():
-    screen.blit(main_panel_img, (0, screen_height - bottom_panel))
-    draw_text(f"{mc.name} HP: {mc.hp}", font, white, 25, screen_height - bottom_panel + 10)
-    draw_text(f"{skeleton.name} HP: {skeleton.hp}", font, white, screen_width / 2, screen_height - bottom_panel + 10)
-
-
-class Characters():
-    def __init__(self, x, y, name, max_hp, strength, potions):
-        self.name = name
-        self.max_hp = max_hp
-        self.hp = max_hp
-        self.strength = strength
-        self.start_potions = potions
-        self.potions = potions
-        self.alive = True
-
-        self.animation_list = []
-        self.frame_index = 0
-        self.action = 1
-        self.update_time = pygame.time.get_ticks()
-
-        for actionType in ["idle", "attack", "hurt", "dead"]:
-            temp_list = []
-            imageCount = len(os.listdir(f"assets/characters/{self.name}/{actionType}"))
-            for j in range(imageCount):
-                img = pygame.image.load(f"assets/characters/{self.name}/{actionType}/{j}.png")
-                img = pygame.transform.scale(img, (img.get_width() * 2, img.get_height() * 2))
-                temp_list.append(img)
-            self.animation_list.append(temp_list)
-
-        self.image = self.animation_list[self.action][self.frame_index]
-        self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
-
-    def draw(self):
-        screen.blit(self.image, self.rect)
-
-    def update(self):
-        animation_cooldown = 100
-        self.image = self.animation_list[self.action][self.frame_index]
-        if pygame.time.get_ticks() - self.update_time > animation_cooldown:
-            self.update_time = pygame.time.get_ticks()
-            self.frame_index += 1
-        if self.frame_index >= len(self.animation_list[self.action]):
-            self.frame_index = 0
-    
-class HealthBar():
-    def __init__(self, x, y, hp, max_hp):
-        self.x = x
-        self.y = y
-        self.hp = hp
-        self.max_hp = max_hp
-
-    def draw(self, hp):
-        self.hp = hp
-        ratio = self.hp / self.max_hp
-        pygame.draw.rect(screen, red, (self.x, self.y, 150, 20))
-        pygame.draw.rect(screen, green, (self.x, self.y, 150 * ratio, 20))
-
-class Enemy (Characters):
-    def __init__(self, x, y, name, max_hp, strength, potions, drop):
-        super().__init__(x, y, name, max_hp, strength, potions)
-        self.drop = drop
-
-soil = screen_height - bottom_panel - 140
-
-mc = Characters(200, soil, "mc", 30, 10, 3)
-skeleton = Enemy(screen_width-200, soil, "skeleton", 20, 6, 1, 'potion')
-
-mc_health_bar = HealthBar(100, screen_height - bottom_panel - 40, mc.hp, mc.max_hp)
-skeleton_health_bar = HealthBar(screen_width - 100, screen_height - bottom_panel - 40, skeleton.hp, skeleton.max_hp)
+presentCharacters = [mc, skeleton]
 
 run = True
 while run:
     clock.tick(fps)
 
-    draw_bg()
-    draw_panel()
+    draw.draw_bg(background_img)
+    draw.draw_panel(main_panel_img, draw.draw_text, mc, skeleton)
 
-    mc.update()
-    mc.draw()
-    mc_health_bar.draw(mc.hp)
-    skeleton.update()
-    skeleton.draw()
-    skeleton_health_bar.draw(skeleton.hp)
+    attack = False
+    mouse_pos = pygame.mouse.get_pos()
+
+    # check enemy is alive then check if mouse is clicked on enemy then attack the enemy
+    if skeleton.alive & mc.alive & (current_fighter == "mc"):
+        if skeleton.rect.collidepoint(mouse_pos):
+            if pygame.mouse.get_pressed()[0] == 1 and clicked == False:
+                attack = True
+                clicked = True
+        if pygame.mouse.get_pressed()[0] == 0:
+            clicked = False
+        if attack == True:
+            mc.attack(skeleton)
+            current_fighter = "skeleton"
+
+    if current_fighter == "skeleton":
+        action_cooldown += 1
+        if action_cooldown >= action_wait_time:
+            action_cooldown = 0
+            skeleton.attack(mc)
+            current_fighter = "mc"
+
+    for character in presentCharacters:
+        character.update()
+        character.draw(screen)
+
+        # if character.alive & (current_fighter == character.name):
+        #     action_cooldown += 1
+        #     if action_cooldown >= action_wait_time:
+        #         action_cooldown = 0
+        #         character.attack(current_fighter == "mc" and skeleton or mc)
+        #         current_fighter = current_fighter == "mc" and 'skeleton' or 'mc'
+    mc_health_bar.draw(screen, mc.hp)
+
+    enemy_health_bar.draw(screen, skeleton.hp)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
