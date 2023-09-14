@@ -16,6 +16,7 @@ red = (255, 0, 0)
 green = (0, 255, 0)
 white = (255, 255, 255)
 gray = (50, 50, 50)
+black = (0, 0, 0)
 
 def init_display():
     screen = pygame.display.set_mode((screen_width, screen_height))

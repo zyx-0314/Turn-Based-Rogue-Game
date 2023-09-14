@@ -1,11 +1,13 @@
 import pygame
 import random
+import math
 import os
 
 from utils import *
+from components.ui import *
 
 class Characters():
-    def __init__(self, x, y, folder, name, max_hp, strength, accuracy):
+    def __init__(self, x, y, damage_text_group, folder, name, max_hp, strength, accuracy, critChance, critDamage):
         self.name = name
         self.folder = folder
         self.max_hp = max_hp
@@ -13,8 +15,15 @@ class Characters():
         self.strength = strength
         self.base_strength = strength
         self.accuracy = accuracy
+        self.base_accuracy = accuracy
+        self.critChance = critChance
+        self.base_critChance = critChance
+        self.critDamage = critDamage
+        self.base_critDamage = critDamage
         self.alive = True
         self.status_effect = []
+
+        self.damage_text_group = damage_text_group
 
         self.animation_list = []
         self.frame_index = 0
@@ -41,13 +50,13 @@ class Characters():
         animation_cooldown = 100
         self.image = self.animation_list[self.action][self.frame_index]
         if pygame.time.get_ticks() - self.update_time > animation_cooldown:
-            if self.alive == False:
+            self.update_time = pygame.time.get_ticks()
+            self.frame_index += 1
+        if self.frame_index >= len(self.animation_list[self.action]):
+            if self.action == 3:
                 self.frame_index = len(self.animation_list[self.action]) - 1
             else:
-                self.update_time = pygame.time.get_ticks()
-                self.frame_index += 1
-        if self.frame_index >= len(self.animation_list[self.action]):
-            self.idle()
+                self.idle()
 
     def update_action(self, new_action):
         if new_action != self.action:
@@ -59,9 +68,20 @@ class Characters():
 
     def attack(self, target):
         self.update_action(1)
+        text = 'Miss!'
         if (random.randint(0, 100) < self.accuracy):
-            target.hp -= self.strength
+            if (random.randint(0, 100) < self.critChance):
+                target.hp -= math.ceil(self.strength * self.critDamage)
+                text = f'Crit! {math.ceil(self.strength * self.critDamage)}'
+            else:
+                target.hp -= self.strength
+                text = f'{self.strength}'
+            if target.hp < 0:
+                target.hp = 0
             target.hurt()
+        self.damage_text_group.add(
+            DamageText(target.rect.centerx, target.rect.y, text, red)
+        )
 
     def idle(self):
         self.update_action(0)
@@ -75,46 +95,92 @@ class Characters():
     def dead(self):
         self.update_action(3)
 
-class HealthBar():
-    def __init__(self, x, y, hp, max_hp):
-        self.x = x
-        self.y = y
-        self.hp = hp
-        self.max_hp = max_hp
-
-    def draw(self, screen, hp,):
-        self.hp = hp
-        ratio = self.hp / self.max_hp
-        pygame.draw.rect(screen, red, (self.x, self.y, 150, 20))
-        pygame.draw.rect(screen, green, (self.x, self.y, 150 * ratio, 20))
-
 class Player(Characters):
-    def __init__(self, x, y, init_dict):
-        super().__init__(x, y, init_dict['folder'], init_dict['name'], init_dict['max_hp'], init_dict['strength'], init_dict['accuracy'])
+    def __init__(self, x, y, damage_text_group, init_dict):
+        super().__init__(
+            x, y, damage_text_group,
+            init_dict['folder'], init_dict['name'],
+            init_dict['max_hp'], init_dict['strength'],
+            init_dict['accuracy'], init_dict['critChance'],
+            init_dict['critDamage']
+        )
         self.bag = init_dict['bag']
 
     def use_potion(self, potion):
+        text = ''
         if potion['effect'] == "heal":
             self.heal(potion['value'])
+            text = f'+{potion["value"]} HP'
         elif potion['effect'] == "boost_attack":
             self.strength += potion['value']
-            print(self.strength)
-            self.status_effect.append(potion)
-        elif potion['effect'] == "cleance":
+            text = f'+{potion["value"]} Strength'
+        elif potion['effect'] == "cleanse":
             self.status_effect = []
+            text = 'Cleanse!'
+        elif potion['effect'] == "boost_accuracy":
+            self.accuracy += potion['value']
+            text = f'+{potion["value"]} Accuracy'
+        elif potion['effect'] == "boost_critChance":
+            self.critChance += potion['value']
+            text = f'+{potion["value"]} Crit Chance'
+        elif potion['effect'] == "boost_critDamage":
+            self.critDamage += potion['value']
+            text = f'+{potion["value"]} Crit Damage'
+
+        if (potion['effect'] != "heal") & (potion['effect'] != "cleanse"):
+            self.status_effect.append(potion)
 
         for items in self.bag:
             if items['name'] == potion['name']:
                 items['quantity'] -= 1
                 if items['quantity'] == 0:
                     self.bag.remove(items)
+        self.damage_text_group.add(
+            DamageText(self.rect.centerx, self.rect.y, text, green)
+        )
+
+    def use_focus(self):
+        self.accuracy += 5
+        self.strength += 5
+        self.status_effect.append({
+            "name": "Focus",
+            "effect": "boost_accuracy",
+            "value": 5,
+            "type": "skills",
+            "turn": 1
+        })
+        self.status_effect.append({
+            "name": "Focus",
+            "effect": "boost_attack",
+            "value": 5,
+            "type": "skills",
+            "turn": 1
+        })
+        self.damage_text_group.add(
+            DamageText(self.rect.centerx, self.rect.y, "Focus! +5 Acc & Str", green)
+        )
 
     def status_ware_off(self):
-        for potion in self.status_effect:
-            potion['turn'] -= 1
-            if potion['turn'] == -1:
-                self.strength = self.base_strength
-                self.status_effect.remove(potion)
+        counter = 1
+        holder = []
+        for status in self.status_effect:
+            status['turn'] -= 1
+            counter += 1
+
+            if status['turn'] <= -1:
+                if status['effect'] == "boost_attack":
+                    self.strength -= status['value']
+                elif status['effect'] == "boost_accuracy":
+                    self.accuracy -= status['value']
+                elif status['effect'] == "boost_critChance":
+                    self.critChance -= status['value']
+                elif status['effect'] == "boost_critDamage":
+                    self.critDamage -= status['value']
+
+                holder.append(status)
+
+        for status in holder:
+            self.status_effect.remove(status)
 
     def heal(self, heal):
         self.hp += heal
@@ -122,6 +188,13 @@ class Player(Characters):
             self.hp = self.max_hp
 
 class Enemy (Characters):
-    def __init__(self, x, y, init_dict):
-        super().__init__(x, y, init_dict['folder'], init_dict['name'], init_dict['max_hp'], init_dict['strength'], init_dict['accuracy'])
+    def __init__(self, x, y, damage_text_group, init_dict):
+        super().__init__(
+            x, y, damage_text_group,
+            init_dict['folder'], init_dict['name'],
+            init_dict['max_hp'], init_dict['strength'],
+            init_dict['accuracy'], init_dict['critChance'],
+            init_dict['critDamage']
+        )
         self.drop = init_dict['drop']
+        self.gold = init_dict['gold']

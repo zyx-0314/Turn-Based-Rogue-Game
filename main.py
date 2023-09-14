@@ -3,10 +3,11 @@ import random
 import os
 
 from utils import *
-from components.buttons import *
-from components.characters import *
+from components.ui import *
 from characterStats import *
 from consumableStats import *
+from components.buttons import *
+from components.characters import *
 
 pygame.init()
 
@@ -15,28 +16,42 @@ screen = init_display()
 background_img = load_and_transform_image.background_img("assets/background/dansel.jpg")
 main_panel_img = load_and_transform_image.main_panel_img("assets/panels/main panel.png")
 
+characterList = []
+
+
 current_fighter = "mc"
 action_cooldown = 0
-action_wait_time = 90
+action_wait_time = 120
 
 attack = False
 clicked = False
 
+damage_text_group = pygame.sprite.Group()
+
 draw = init_draw(screen)
 
-mc = Player(200, groundLevel, PlayerStat.Samurai)
-enemy = Enemy(screen_width-200, groundLevel, MonsterStat.SoldierSkeleton)
+mc = Player(200, groundLevel, damage_text_group, PlayerStat.Samurai)
+enemy = Enemy(screen_width-200, groundLevel, damage_text_group, MonsterStat.SoldierSkeleton)
 
 mc_health_bar = HealthBar(leftTextIndention, screen_height - bottom_panel + 40, mc.hp, mc.max_hp)
 enemy_health_bar = HealthBar(rightTextIndention, screen_height - bottom_panel + 40, enemy.hp, enemy.max_hp)
 
 presentCharacters = [mc, enemy]
 
+skillButton = []
+
+skillCounter = 0
+for skills in ['attack1', 'focus']:
+    skill_img = load_and_transform_image.convert(f"assets/skills/{skills}.png")
+    skill_button = Button(screen, 200 + (40 * skillCounter), screen_height - bottom_panel + 40, skill_img, 32, 32, skills)
+    skillButton.append(skill_button)
+    skillCounter += 1
+
 bagButton = []
 
 itemCounter = 0
 for items in mc.bag:
-    potion_img = load_and_transform_image.convert(f"assets/potions/{items['name']}.png")
+    potion_img = load_and_transform_image.convert(f"assets/potions/{items['name'].lower()}.png")
     potion_button = Button(screen, leftTextIndention + (40 * itemCounter), screen_height - bottom_panel + 70, potion_img, 32, 32, items['name'])
     bagButton.append(potion_button)
     itemCounter += 1
@@ -45,13 +60,13 @@ statusEffect = []
 
 statusCounter = 0
 for items in mc.status_effect:
-    status_img = load_and_transform_image.convert(f"assets/potions/{items['name']}.png")
+    status_img = load_and_transform_image.convert(f"assets/{items['type']}/{items['name'].lower()}.png")
     status_button = Button(screen, leftTextIndention + (40 * statusCounter), screen_height - bottom_panel - 40, status_img, 32, 32, items['name'])
     statusEffect.append(status_button)
     statusCounter += 1
 
 def addStatusEffect(status, counter):
-    status_img = load_and_transform_image.convert(f"assets/potions/{status['name']}.png")
+    status_img = load_and_transform_image.convert(f"assets/{status['type']}/{status['name'].lower()}.png")
     status_button = Button(screen, leftTextIndention + (40 * counter), screen_height - bottom_panel - 40, status_img, 32, 32, status['name'])
     statusEffect.append(status_button)
     counter += 1
@@ -68,13 +83,13 @@ while run:
     if (current_fighter == "mc") & mc.alive:
         attack = False
 
-        if enemy.alive:
-            if enemy.rect.collidepoint(mouse_pos):
-                if pygame.mouse.get_pressed()[0] == 1 and clicked == False:
-                    attack = True
-                    clicked = True
-            if pygame.mouse.get_pressed()[0] == 0:
-                clicked = False
+        for skill_button in skillButton:
+            if skill_button.draw():
+                if skill_button.name == "attack1":
+                    mc.attack(enemy)
+                if skill_button.name == "focus":
+                    mc.use_focus()
+                current_fighter = "enemy"
 
         for potion_button in bagButton:
             if potion_button.draw():
@@ -85,24 +100,19 @@ while run:
                         no_potion = False
                 if no_potion:
                     bagButton.remove(potion_button)
-                current_fighter = "enemy"
-
-        if attack:
-            mc.attack(enemy)
-            current_fighter = "enemy"
-        
-        if current_fighter == "enemy":
-            mc.status_ware_off()
             statusEffect.clear()
             statusCounter = mc.status_effect.__len__() - 1
             for statusUpdate in mc.status_effect:
                 addStatusEffect(statusUpdate, statusCounter)
                 statusCounter -= 1
 
+        if current_fighter == "enemy":
+            mc.status_ware_off()
+
     for status in statusEffect:
         status.draw()
 
-    if current_fighter == "enemy":
+    if (current_fighter == "enemy") & enemy.alive:
         action_cooldown += 1
         if action_cooldown >= action_wait_time:
             action_cooldown = 0
@@ -116,6 +126,9 @@ while run:
 
     mc_health_bar.draw(screen, mc.hp)
     enemy_health_bar.draw(screen, enemy.hp)
+
+    damage_text_group.update()
+    damage_text_group.draw(screen)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
