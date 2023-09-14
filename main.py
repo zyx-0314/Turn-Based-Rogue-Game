@@ -50,6 +50,12 @@ for items in mc.status_effect:
     statusEffect.append(status_button)
     statusCounter += 1
 
+def addStatusEffect(status, counter):
+    status_img = load_and_transform_image.convert(f"assets/potions/{status['name']}.png")
+    status_button = Button(screen, leftTextIndention + (40 * counter), screen_height - bottom_panel - 40, status_img, 32, 32, status['name'])
+    statusEffect.append(status_button)
+    counter += 1
+
 run = True
 while run:
     clock.tick(fps)
@@ -87,6 +93,11 @@ while run:
         
         if current_fighter == "enemy":
             mc.status_ware_off()
+            statusEffect.clear()
+            statusCounter = mc.status_effect.__len__() - 1
+            for statusUpdate in mc.status_effect:
+                addStatusEffect(statusUpdate, statusCounter)
+                statusCounter -= 1
 
     for status in statusEffect:
         status.draw()
