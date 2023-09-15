@@ -39,7 +39,7 @@ def MainMenu():
         draw.draw_panel(main_panel_img,centerX(main_panel_img), centerY-23)
         draw.draw_panel(title_panel_img,centerX(title_panel_img), -55)
 
-        draw.draw_text("Turn Based Roguelike Game", gametitle_font, black, screen_width/2 - 260, 50)
+        draw.draw_text("Turn Based Rogue Game", gametitle_font, black, screen_width/2 - 260, 50)
         draw.draw_text("by Ian Cedric Ramirez", author_font, gray, screen_width/2 - 100, 100)
 
         for button in buttonArray:
