@@ -118,7 +118,7 @@ If you are looking for a compiled version of the game, please check the releases
 
 1. **Download the Compiled Game**
 
-   Go to the [Releases](https://github.com/your-username/rogue-turn-based-game/releases) section of this repository and download the compiled version of the game for your platform (e.g., Windows, macOS, Linux).
+   Go to the [Releases](https://github.com/your-username/Turn-Based-Rogue-Game/releases) section of this repository and download the compiled version of the game for your platform (e.g., Windows, macOS, Linux).
 
 2. **Run the Game**
 
