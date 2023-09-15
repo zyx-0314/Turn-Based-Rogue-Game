@@ -70,29 +70,60 @@ This game is built using PyGame, a popular Python library for creating 2D games.
 
 ### Installation
 
-Instruction on how to install the project.
+#### For Developers:
 
-To run this game locally, follow these steps:
+If you want to set up a development environment for this game, follow these steps:
 
-Clone this repository to your local machine:
+1. **Set up a Virtual Environment (Optional)**
 
-bash
-Copy code
-git clone https://github.com/your-username/rogue-turn-based-game.git
-Navigate to the project directory:
+   You can create a virtual environment to isolate the project dependencies from your system-wide Python packages. This step is optional but recommended for better project management.
 
-arduino
-Copy code
-cd rogue-turn-based-game
-Install the required dependencies using pip:
+   ```shell
+   python -m venv venv
+   ```
 
-Copy code
-pip install -r requirements.txt
-Run the game:
+2. **Initialize the Virtual Environment (Optional)**
 
-css
-Copy code
-python main.py
+   Activate the virtual environment if you created one. This step is optional if you skipped creating a virtual environment.
+
+   On Windows:
+   ```shell
+   venv\Scripts\activate
+   ```
+
+   On macOS and Linux:
+   ```shell
+   source venv/bin/activate
+   ```
+
+3. **Install Pygame**
+
+   Install the required dependencies, including Pygame, using pip:
+
+   ```shell
+   pip install -r requirements.txt
+   ```
+
+4. **Run the Game**
+
+   You can start the game by running the following command:
+
+   ```shell
+   python main.py
+   ```
+
+#### For Compiled Version:
+
+If you are looking for a compiled version of the game, please check the releases section of this repository. We provide compiled executables for various platforms. Download the appropriate version for your operating system and follow these steps:
+
+1. **Download the Compiled Game**
+
+   Go to the [Releases](https://github.com/your-username/rogue-turn-based-game/releases) section of this repository and download the compiled version of the game for your platform (e.g., Windows, macOS, Linux).
+
+2. **Run the Game**
+
+   Once downloaded, simply run the executable file to start playing the game.
+
 
 <br />
 
