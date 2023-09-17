@@ -3,78 +3,93 @@ class ConsumableStats():
     if (potionName == "Cleanse Potion"):
       return {
         "name": "Cleanse Potion",
-        "description": "Cleanse all Status Effects",
-        "effect": "cleance",
+        "description": "Cleanse all Status Effects",[
+        "file_icon"]: "cleanse_potion",
+        "effect": ["cleance"],
         "value": 0,
         "type": "potions",
         "turn": 0,
+        "quantity": 1
       }
 
     if (potionName == "Crit Potion"):
       return {
         "name": "Crit Potion",
         "description": "Boost +10 Crit Damage",
-        "effect": "boost_critDamage",
+        "file_icon": "crit_potion",
+        "effect": ["boost_critDamage"],
         "value": 3,
         "type": "potions",
         "turn": 5,
+        "quantity": 1
       }
 
     if (potionName == "Crit Strike Potion"):
       return {
         "name": "Crit Strike Potion",
         "description": "Boost +10 Crit Chance",
-        "effect": "boost_critChance",
+        "file_icon": "crit_strike_potion",
+        "effect": ["boost_critChance"],
         "value": 50,
         "type": "potions",
         "turn": 5,
+        "quantity": 1
       }
     
     if (potionName == "Flare Potion"):
       return {
         "name": "Flare Potion",
         "description": "Boost +10 Strength",
-        "effect": "boost_attack",
+        "file_icon": "flare_potion",
+        "effect": ["boost_attack"],
         "value": 10,
         "type": "potions",
         "turn": 5,
+        "quantity": 1
       }
 
     if (potionName == "Max Heal Potion"):
       return {
         "name": "Max Heal Potion",
         "description": "Heal 100 HP",
-        "effect": "heal",
+        "file_icon": "max_heal_potion",
+        "effect": ["heal"],
         "value": 30,
         "type": "potions",
         "turn": 0,
+        "quantity": 1
       }
 
     if (potionName == "Trinket Heal Potion"):
       return {
         "name": "Trinket Heal Potion",
         "description": "Heal 25 HP",
-        "effect": "heal",
+        "file_icon": "trinket_heal_potion",
+        "effect": ["heal"],
         "value": 10,
         "type": "potions",
         "turn": 0,
+        "quantity": 1
       }
 
     if (potionName == "Trinket Flare Potion"):
       return {
         "name": "Trinket Flare Potion",
         "description": "Boost +5 Strength",
-        "effect": "boost_attack",
+        "file_icon": "trinket_flare_potion",
+        "effect": ["boost_attack"],
         "value": 5,
         "type": "potions",
         "turn": 2,
+        "quantity": 1
       }
     
     if (potionName == "Trinket Wind Potion"):
       return {
         "name": "Trinket Wind Potion",
         "description": "Boost +5 Accuracy",
-        "effect": "boost_accuracy",
+        "file_icon": "trinket_wind_potion",
+        "effect": ["boost_accuracy"],
         "value": 5,
         "type": "potions",
         "turn": 3,
@@ -84,7 +99,8 @@ class ConsumableStats():
       return {
         "name": "Wind Potion",
         "description": "Boost +10 Accuracy",
-        "effect": "boost_accuracy",
+        "file_icon": "wind_potion",
+        "effect": ["boost_accuracy"],
         "value": 10,
         "type": "potions",
         "turn": 5,
@@ -94,17 +110,20 @@ class ConsumableStats():
       return {
         "name": "Trinket Crit Potion",
         "description": "Boost +5 Crit Damage",
-        "effect": "boost_critDamage",
+        "file_icon": "trinket_crit_potion",
+        "effect": ["boost_critDamage"],
         "value": 5,
         "type": "potions",
         "turn": 2,
+        "quantity": 1
       }
 
     if (potionName == "Trinket Crit Strike Potion"):
       return {
         "name": "Trinket Crit Strike Potion",
         "description": "Boost +5 Crit Chance",
-        "effect": "boost_critChance",
+        "file_icon": "trinket_crit_strike_potion",
+        "effect": ["boost_critChance"],
         "value": 30,
         "type": "potions",
         "turn": 2,

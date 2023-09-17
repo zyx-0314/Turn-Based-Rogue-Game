@@ -1,13 +1,15 @@
 import pygame
 import random
+import uuid
 import math
 import os
 
 from utils import *
 from components.ui import *
+from components.soundLoader import *
 
 class Characters():
-    def __init__(self, x, y, damage_text_group, folder, name, max_hp, strength, accuracy, critChance, critDamage, weapon):
+    def __init__(self, x, y, folder, name, max_hp, strength, accuracy, critChance, critDamage, weapon,  damage_text_group = None):
         self._name = name
         self._folder = folder
         self._max_hp = max_hp
@@ -25,7 +27,8 @@ class Characters():
         self._status_effect = []
         self._weapon = weapon
 
-        self._damage_text_group = damage_text_group
+        if damage_text_group != None:
+            self._damage_text_group = damage_text_group
 
         self._animation_list = []
         self._frame_index = 0
@@ -44,6 +47,9 @@ class Characters():
         self._image = self._animation_list[self._action][self._frame_index]
         self._rect = self._image.get_rect()
         self._rect.center = (x, y)
+
+    def setDamageTextGroup(self, damage_text_group):
+        self._damage_text_group = damage_text_group
 
     def draw(self, screen):
         screen.blit(self._image, self._rect)
@@ -134,43 +140,52 @@ class Characters():
         return self._alive
 
 class Player(Characters):
-    def __init__(self, x, y, damage_text_group, init_dict):
+    def __init__(self, x, y, init_dict, damage_text_group = None):
         super().__init__(
-            x, y, damage_text_group,
+            x, y,
             init_dict['folder'], init_dict['name'],
             init_dict['max_hp'], init_dict['strength'],
             init_dict['accuracy'], init_dict['critChance'],
-            init_dict['critDamage'], init_dict['weapon']
+            init_dict['critDamage'], init_dict['weapon'],
+            damage_text_group,
         )
         self._bag = init_dict['bag']
+        self._skill = init_dict['skill']
+
+    def _effects(self, status):
+        if "heal" not in status['effect'] and "cleanse" not in status['effect']:
+            self._status_effect.append(dict(status))
+
+        text = ''
+        if "heal" in status['effect']:
+            self.heal(status["value"])
+            text += f'+{status["value"]} HP '
+        if "boost_attack" in status['effect']:
+            self._strength += status["value"]
+            text += f'+{status["value"]} Strength '
+        if "cleanse" in status['effect']:
+            self._status_effect = []
+            text += 'Cleanse '
+        if "boost_accuracy" in status['effect']:
+            self._accuracy += status["value"]
+            text += f'+{status["value"]} Accuracy '
+        if "boost_critChance" in status['effect']:
+            self._critChance += status["value"]
+            text += f'+{status["value"]} Crit Chance '
+        if "boost_critDamage" in status['effect']:
+            self._critDamage += status["value"]
+            text += f'+{status["value"]} Crit Damage '
+
+        return text
 
     def checkBag(self):
         return self._bag
 
     def use_potion(self, potion):
         pygame.mixer.Sound.play(drink_sound)
-        text = ''
-        if potion['effect'] == "heal":
-            self.heal(potion['value'])
-            text = f'+{potion["value"]} HP'
-        elif potion['effect'] == "boost_attack":
-            self._strength += potion['value']
-            text = f'+{potion["value"]} Strength'
-        elif potion['effect'] == "cleanse":
-            self._status_effect = []
-            text = 'Cleanse!'
-        elif potion['effect'] == "boost_accuracy":
-            self._accuracy += potion['value']
-            text = f'+{potion["value"]} Accuracy'
-        elif potion['effect'] == "boost_critChance":
-            self._critChance += potion['value']
-            text = f'+{potion["value"]} Crit Chance'
-        elif potion['effect'] == "boost_critDamage":
-            self._critDamage += potion['value']
-            text = f'+{potion["value"]} Crit Damage'
-
-        if (potion['effect'] != "heal") & (potion['effect'] != "cleanse"):
-            self._status_effect.append(potion)
+        text = self._effects(
+            potion
+        )
 
         for items in self._bag:
             if items['name'] == potion['name']:
@@ -181,49 +196,23 @@ class Player(Characters):
             DamageText(self._rect.centerx, self._rect.y, text, green)
         )
 
-    def use_focus(self):
-        pygame.mixer.Sound.play(boost_sound)
-        self._accuracy += 5
-        self._strength += 5
-        self._status_effect.append({
-            "name": "Focus",
-            "effect": "boost_accuracy",
-            "value": 5,
-            "type": "skills",
-            "turn": 1
-        })
-        self._status_effect.append({
-            "name": "Focus",
-            "effect": "boost_attack",
-            "value": 5,
-            "type": "skills",
-            "turn": 1
-        })
-        self._damage_text_group.add(
-            DamageText(self._rect.centerx, self._rect.y, "Focus! +5 Acc & Str", green)
-        )
-
     def status_ware_off(self):
         counter = 1
-        holder = []
         for status in self._status_effect:
             status['turn'] -= 1
             counter += 1
 
             if status['turn'] <= -1:
-                if status['effect'] == "boost_attack":
+                self._status_effect.remove(status)
+                if "boost_attack" in status['effect'] :
                     self._strength -= status['value']
-                elif status['effect'] == "boost_accuracy":
+                if "boost_accuracy" in status['effect'] :
                     self._accuracy -= status['value']
-                elif status['effect'] == "boost_critChance":
+                if "boost_critChance" in status['effect'] :
                     self._critChance -= status['value']
-                elif status['effect'] == "boost_critDamage":
+                if "boost_critDamage" in status['effect'] :
                     self._critDamage -= status['value']
 
-                holder.append(status)
-
-        for status in holder:
-            self._status_effect.remove(status)
 
     def heal(self, heal):
         self._hp += heal
@@ -238,16 +227,29 @@ class Player(Characters):
             if items['name'] == item['name']:
                 items['quantity'] += 1
                 return
-        self._bag.append(item)
+        self._bag.append(dict(item))
+
+    def use_skill(self, skill):
+        text = ''
+        for character_skill in self._skill:
+            if skill == character_skill['name']:
+                text = self._effects(character_skill)
+        self._damage_text_group.add(
+            DamageText(self._rect.centerx, self._rect.y, text, green)
+        )
+
+    def checkSkills(self):
+        return self._skill
 
 class Enemy (Characters):
-    def __init__(self, x, y, damage_text_group, init_dict):
+    def __init__(self, x, y, init_dict, damage_text_group = None):
         super().__init__(
-            x, y, damage_text_group,
+            x, y,
             init_dict['folder'], init_dict['name'],
             init_dict['max_hp'], init_dict['strength'],
             init_dict['accuracy'], init_dict['critChance'],
-            init_dict['critDamage'], init_dict['weapon']
+            init_dict['critDamage'], init_dict['weapon'],
+            damage_text_group,
         )
         self._drop = init_dict['drop']
         self._gold = init_dict['gold']

@@ -9,11 +9,11 @@ class HealthBar():
         self.hp = hp
         self.max_hp = max_hp
 
-    def draw(self, screen, hp,):
+    def draw(self, screen, hp):
         self.hp = hp
         ratio = self.hp / self.max_hp
-        pygame.draw.rect(screen, red, (self.x, self.y, 150, 20))
-        pygame.draw.rect(screen, green, (self.x, self.y, 150 * ratio, 20))
+        pygame.draw.rect(screen, red, (self.x, self.y, 450, 20))
+        pygame.draw.rect(screen, green, (self.x, self.y, 450 * ratio, 20))
 
 class DamageText(pygame.sprite.Sprite):
     def __init__(self, x, y, damage, color):

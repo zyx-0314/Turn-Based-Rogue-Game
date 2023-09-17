@@ -2,13 +2,11 @@ import pygame
 import random
 
 from utils import *
-
 from components.buttons import Button
-from stats.characterStats import PlayerStat, MonsterStat
-
 from scenes.battle import BattleScene
-
-pygame.init()
+from components.characters import Player, Enemy
+from stats.characterStats import PlayerStat, MonsterStat
+from components.imageLoader import load_and_transform_image
 
 screen = init_display()
 draw = init_draw(screen)
@@ -33,10 +31,13 @@ def randomizeEnemy():
     ]
     return random.choice(enemies)
 
+def setCharacter(SelectedCharacter):
+    return Player(200, groundLevel, SelectedCharacter)
+
 def SelectionScene():
-    running = True
-    terminate = False
-    while running:
+    Samurai = setCharacter(PlayerStat.Samurai)
+
+    while True:
         clock.tick(fps)
 
         draw.draw_bg(background_img)
@@ -47,7 +48,7 @@ def SelectionScene():
             character.draw()
             draw.draw_text(character.name, font, green, screen_width/2 - 160 + (250*counter), groundLevel/2+80)
             counter += 1
-        
+
         draw.draw_text("Select your character", font, white, screen_width/2 - 100, groundLevel/2-80)
 
         for event in pygame.event.get():
@@ -55,14 +56,15 @@ def SelectionScene():
                 if event.button == 1:
                     for character in characterList:
                         if character.rect.collidepoint(event.pos):
+                            response = 'asd'
                             if character.name == "samurai":
-                                BattleScene(PlayerStat.Samurai, randomizeEnemy())
+                                response = BattleScene(Samurai, randomizeEnemy())
                             if character.name == "archer":
-                                BattleScene(PlayerStat.Archer, randomizeEnemy())
+                                response = BattleScene(setCharacter(PlayerStat.Archer), randomizeEnemy())
+
+                            if response == 'exit':
+                                return False
             if event.type == pygame.QUIT:
-                running = False
-                terminate = True
+                return False
 
         pygame.display.update()
-    if terminate:
-        pygame.quit()
