@@ -93,7 +93,7 @@ def BattleScene(Player, SelectedEnemy):
             draw.draw_text("Skill", button_label_font, black, leftTextIndention, screen_height - bottom_panel + 10)
 
             for index, skill in enumerate(skillButton):
-                
+
                 if skill.rect.collidepoint(mouse_pos):
                     pygame.draw.rect(screen, gray, skill.rect, 3)
                     draw.draw_text(skill.name, button_label_font, black, leftTextIndention + 40, screen_height - bottom_panel + 10)
@@ -157,8 +157,9 @@ def BattleScene(Player, SelectedEnemy):
             icon = load_and_transform_image.scale(f"assets/icons/exit.png")
             button = Button(screen, screen_width/2 - 50, screen_height/2 + 50, icon, icon.get_width(), icon.get_height(), "OK")
             if button.draw():
+                if (Player.checkIfAlive() == False):
+                    return 'dead'
                 return
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return 'exit'

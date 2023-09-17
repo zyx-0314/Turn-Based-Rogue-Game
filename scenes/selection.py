@@ -32,10 +32,11 @@ def randomizeEnemy():
     return random.choice(enemies)
 
 def setCharacter(SelectedCharacter):
-    return Player(200, groundLevel, SelectedCharacter)
+    return Player(200, groundLevel, dict(SelectedCharacter))
 
 def SelectionScene():
     Samurai = setCharacter(PlayerStat.Samurai)
+    Archer = setCharacter(PlayerStat.Archer)
 
     while True:
         clock.tick(fps)
@@ -56,14 +57,18 @@ def SelectionScene():
                 if event.button == 1:
                     for character in characterList:
                         if character.rect.collidepoint(event.pos):
-                            response = 'asd'
-                            if character.name == "samurai":
-                                response = BattleScene(Samurai, randomizeEnemy())
-                            if character.name == "archer":
-                                response = BattleScene(setCharacter(PlayerStat.Archer), randomizeEnemy())
+                            response = ''
+                            while True:
+                                if character.name == "samurai":
+                                        response = BattleScene(Samurai, randomizeEnemy())
+                                if character.name == "archer":
+                                    response = BattleScene(Archer, randomizeEnemy())
+                                if response == 'dead':
+                                    response = 'exit'
+                                    break
 
-                            if response == 'exit':
-                                return False
+                        if response == 'exit':
+                            return False
             if event.type == pygame.QUIT:
                 return False
 
